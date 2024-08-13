@@ -28,17 +28,17 @@ jobs:
         run: |
           mvn clean package
 
-      - name: Login via Azure CLI
-        uses: azure/login@v1
+      - name: Login to Azure
+        uses: azure/login@v2
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A27ADCD20997448C9F551A1B0954D6F6 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_B4E9DED61DC045B1B8954969C65F6D93 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D979BEBEE7924A6DB89A53B53A33D9F5 }}
 
-      - name: deploy to production step with soruce code
-        uses: azure/spring-apps-deploy@v1
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
         with:
-          azure-subscription: ${{ env.AZURE_SUBSCRIPTION }}
-          action: deploy
-          service-name: "moneris-main-backend"
           app-name: "moneris-main-backend"
-          use-staging-deployment: false
-          package: ${{ env.ASC_PACKAGE_PATH }}/**/*.jar
+          slot-name: "Production"
+          package: "*.jar"
