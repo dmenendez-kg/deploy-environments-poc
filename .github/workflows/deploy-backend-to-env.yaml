@@ -38,5 +38,5 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
+          app-name: ${{ env[inputs.environment].AZURE_MAIN_BACKEND_APP_NAME }}
           package: "*.jar"
