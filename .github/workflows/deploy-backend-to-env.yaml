@@ -12,6 +12,7 @@ jobs:
   deploy_to_production:
     runs-on: ubuntu-latest
     name: deploy to production with soruce code
+    environment: ${{ inputs.environment }}
     defaults:
       run:
         working-directory: "backend/main-backend"
@@ -39,6 +40,7 @@ jobs:
         run: |
           echo ${{env}}
           echo ${{env.AZURE_MAIN_BACKEND_APP_NAME}}
+          echo ${{vars.AZURE_MAIN_BACKEND_APP_NAME}}
           echo ${{env.Dev}}
           echo ${{inputs.environment}}
 
