@@ -1,0 +1,15 @@
+name: Push Updated Test Config to notification backend
+
+on:
+  pull_request:
+    types:
+      - closed
+    paths:
+      - "backend/notification-backend/**"
+  workflow_dispatch:
+
+jobs:
+  push-updated-coverage-threshold-to-notification-backend:
+    uses: ./.github/workflows/update-backend-code-coverage.yaml
+    with:
+      backend-working-directory: "backend/notification-backend"

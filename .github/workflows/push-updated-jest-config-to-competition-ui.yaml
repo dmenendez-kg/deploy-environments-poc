@@ -1,0 +1,15 @@
+name: Push Updated Jest Config to competition ui
+
+on:
+  pull_request:
+    types:
+      - closed
+    paths:
+      - 'frontend/competition-ui/**'
+  workflow_dispatch:
+
+jobs:
+  push-updated-coverage-threshold-to-competition-ui:
+    uses: ./.github/workflows/update-ui-code-coverage.yaml
+    with:
+      ui-working-directory: 'frontend/competition-ui'

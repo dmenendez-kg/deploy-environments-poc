@@ -1,0 +1,15 @@
+name: Check quality on customers ui
+
+on:
+  pull_request:
+    # branches:
+    #   - main
+    paths:
+      - 'frontend/customers-ui/**'
+  workflow_dispatch:
+
+jobs:
+  check-npm-quality-on-customers-ui:
+    uses: ./.github/workflows/npm-quality-check.yaml
+    with:
+      ui-working-directory: 'frontend/customers-ui'

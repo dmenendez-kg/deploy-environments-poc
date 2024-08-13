@@ -1,0 +1,16 @@
+name: Check code quality on main-backend
+
+on:
+  pull_request:
+    branches:
+      - main
+
+    paths:
+      - "backend/main-backend/**"
+  workflow_dispatch:
+
+jobs:
+  check-code-coverage-on-main-backend:
+    uses: ./.github/workflows/backend-quality-check.yaml
+    with:
+      backend-working-directory: "backend/main-backend"

@@ -1,0 +1,15 @@
+name: Check quality on competition ui
+
+on:
+  pull_request:
+    # branches:
+    #   - main
+    paths:
+      - 'frontend/competition-ui/**'
+  workflow_dispatch:
+
+jobs:
+  check-npm-quality-on-competition-ui:
+    uses: ./.github/workflows/npm-quality-check.yaml
+    with:
+      ui-working-directory: 'frontend/competition-ui'

@@ -1,0 +1,213 @@
+name: Check NPM Quality
+
+on:
+  workflow_call:
+    inputs:
+      ui-working-directory:
+        description: 'The path of the frontend'
+        required: true
+        type: string
+
+env:
+  CODE_COVERAGE_MODIFIER: ${{ vars.CODE_COVERAGE_MODIFIER }}
+  RAMPING_CODE_COVERAGE_CAP: ${{ vars.RAMPING_CODE_COVERAGE_CAP }}
+
+jobs:
+  check-npm-quality-on-ui:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.ui-working-directory }}
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=high
+
+      - name: Run npm lint
+        run: |
+          npm run lint
+      
+      - name: Run unit tests
+        if: success() || failure()   
+        run: npm test 
+      
+      - name: Unit tests Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()   
+        with:
+          name: JEST Tests
+          path: ${{ inputs.ui-working-directory }}/junit.xml
+          reporter: jest-junit  
+
+      - name: Run coverage and print results
+        run: |
+          npm run coverage
+
+      - name: Read and print coverage summary
+        id: pull-request-coverage
+        run: |
+          coverageFile=coverage/coverage-summary.json
+          if [ -f "$coverageFile" ]; then
+            echo "Coverage file found"
+            cat $coverageFile
+            lineCoverage=$(jq '.total.lines.pct' $coverageFile)
+            statementCoverage=$(jq '.total.statements.pct' $coverageFile)
+            branchCoverage=$(jq '.total.branches.pct' $coverageFile)
+            functionCoverage=$(jq '.total.functions.pct' $coverageFile)
+
+            echo "Total line coverage: $lineCoverage%"
+            echo "Total statement coverage: $statementCoverage"
+            echo "Total branch coverage: $branchCoverage"
+            echo "Total function coverage: $functionCoverage"
+
+            echo "lineCoverage=$lineCoverage" >> $GITHUB_OUTPUT
+            echo "statementCoverage=$statementCoverage" >> $GITHUB_OUTPUT
+            echo "branchCoverage=$branchCoverage" >> $GITHUB_OUTPUT
+            echo "functionCoverage=$functionCoverage" >> $GITHUB_OUTPUT
+          else
+            echo "Coverage file not found!"
+            exit 1
+          fi
+
+      - name: Check if PR coverage exceeds RAMPING_CODE_COVERAGE_CAP
+        id: check-if-coverage-exceeds-cap
+        run: |
+          lineCoverage=${{ steps.pull-request-coverage.outputs.lineCoverage }}
+          statementCoverage=${{ steps.pull-request-coverage.outputs.statementCoverage }}
+          branchCoverage=${{ steps.pull-request-coverage.outputs.branchCoverage }}
+          functionCoverage=${{ steps.pull-request-coverage.outputs.functionCoverage }}
+          RAMPING_CODE_COVERAGE_CAP=${{ env.RAMPING_CODE_COVERAGE_CAP }}
+
+          exceedsCap=false
+
+          if (( $(echo "$lineCoverage >= $RAMPING_CODE_COVERAGE_CAP" | bc -l) )) &&
+            (( $(echo "$statementCoverage >= $RAMPING_CODE_COVERAGE_CAP" | bc -l) )) &&
+            (( $(echo "$branchCoverage >= $RAMPING_CODE_COVERAGE_CAP" | bc -l) )) &&
+            (( $(echo "$functionCoverage >= $RAMPING_CODE_COVERAGE_CAP" | bc -l) )); then
+            exceedsCap=true
+            echo "Coverage exceeds the cap."
+          else
+            echo "Coverage does not exceed the cap."
+          fi
+
+          echo "exceedsCap=$exceedsCap" >> $GITHUB_OUTPUT
+
+      - name: Fetch main branch
+        if: steps.check-if-coverage-exceeds-cap.outputs.exceedsCap == 'false'
+        run: git fetch origin main:main
+
+      - name: Checkout main branch jest.config.json
+        if: steps.check-if-coverage-exceeds-cap.outputs.exceedsCap == 'false'
+        run: |
+          git checkout main -- jest.config.json
+          cat jest.config.json
+
+      - name: Extract coverage threshold from main branch
+        if: steps.check-if-coverage-exceeds-cap.outputs.exceedsCap == 'false'
+        id: extract-min-code-coverage-from-main
+        run: |
+          thresholdFile=jest.config.json
+          if [ -f "$thresholdFile" ]; then
+            echo "Threshold file found"
+            mainLineCoverage=$(jq '.coverageThreshold.global.lines' $thresholdFile)
+            mainStatementCoverage=$(jq '.coverageThreshold.global.statements' $thresholdFile)
+            mainBranchCoverage=$(jq '.coverageThreshold.global.functions' $thresholdFile)
+            mainFunctionCoverage=$(jq '.coverageThreshold.global.branches' $thresholdFile)
+
+            if [ $mainLineCoverage -ge $RAMPING_CODE_COVERAGE_CAP ]; then
+              requiredLineCoverage=${{ env.RAMPING_CODE_COVERAGE_CAP }}
+            else
+              requiredLineCoverage=$(($mainLineCoverage + CODE_COVERAGE_MODIFIER))
+            fi
+
+            if [ $mainStatementCoverage -ge $RAMPING_CODE_COVERAGE_CAP ]; then
+              requiredStatementCoverage=${{ env.RAMPING_CODE_COVERAGE_CAP }}
+            else
+              requiredStatementCoverage=$(($mainStatementCoverage + CODE_COVERAGE_MODIFIER))
+            fi
+
+            if [ $mainBranchCoverage -ge $RAMPING_CODE_COVERAGE_CAP ]; then
+              requiredBranchCoverage=${{ env.RAMPING_CODE_COVERAGE_CAP }}
+            else
+              requiredBranchCoverage=$(($mainBranchCoverage + CODE_COVERAGE_MODIFIER))
+            fi
+
+            if [ $mainFunctionCoverage -ge $RAMPING_CODE_COVERAGE_CAP ]; then
+              requiredFunctionCoverage=${{ env.RAMPING_CODE_COVERAGE_CAP }}
+            else
+             requiredFunctionCoverage=$(($mainFunctionCoverage + CODE_COVERAGE_MODIFIER))
+            fi
+
+            echo "Total line coverage: $mainLineCoverage%"
+            echo "Total statement coverage: $mainStatementCoverage%"
+            echo "Total branch coverage: $mainBranchCoverage%"
+            echo "Total function coverage: $mainFunctionCoverage%"
+
+            echo "Required line coverage: $requiredLineCoverage%"
+            echo "Required statement coverage: $requiredStatementCoverage%"
+            echo "Required branch coverage: $requiredBranchCoverage%"
+            echo "Required function coverage: $requiredFunctionCoverage%"
+
+            echo "mainLineCoverage=$mainLineCoverage" >> $GITHUB_OUTPUT
+            echo "mainLineCoverage=$mainLineCoverage" >> $GITHUB_OUTPUT
+            echo "mainLineCoverage=$mainLineCoverage" >> $GITHUB_OUTPUT
+            echo "mainLineCoverage=$mainLineCoverage" >> $GITHUB_OUTPUT
+
+            echo "requiredLineCoverage=$requiredLineCoverage" >> $GITHUB_OUTPUT
+            echo "requiredStatementCoverage=$requiredStatementCoverage" >> $GITHUB_OUTPUT
+            echo "requiredBranchCoverage=$requiredBranchCoverage" >> $GITHUB_OUTPUT
+            echo "requiredFunctionCoverage=$requiredFunctionCoverage" >> $GITHUB_OUTPUT
+          else
+            echo "Threshold file not found"
+            exit 1
+          fi
+
+      - name: Check if PR coverage exceeds required coverage
+        id: coverage-check
+        if: steps.check-if-coverage-exceeds-cap.outputs.exceedsCap == 'false'
+        run: |
+          lineCoverage=${{ steps.pull-request-coverage.outputs.lineCoverage }}
+          statementCoverage=${{ steps.pull-request-coverage.outputs.statementCoverage }}
+          branchCoverage=${{ steps.pull-request-coverage.outputs.branchCoverage }}
+          functionCoverage=${{ steps.pull-request-coverage.outputs.functionCoverage }}
+
+          requiredLineCoverage=${{ steps.extract-min-code-coverage-from-main.outputs.requiredLineCoverage }}
+          requiredStatementCoverage=${{ steps.extract-min-code-coverage-from-main.outputs.requiredStatementCoverage }}
+          requiredBranchCoverage=${{ steps.extract-min-code-coverage-from-main.outputs.requiredBranchCoverage }}
+          requiredFunctionCoverage=${{ steps.extract-min-code-coverage-from-main.outputs.requiredFunctionCoverage }}
+
+          if (( $(echo "$lineCoverage >= $requiredLineCoverage" | bc -l) )) &&
+            (( $(echo "$statementCoverage >= $requiredStatementCoverage" | bc -l) )) &&
+            (( $(echo "$branchCoverage >= $requiredBranchCoverage" | bc -l) )) &&
+            (( $(echo "$functionCoverage >= $requiredFunctionCoverage" | bc -l) )); then
+            echo "PR coverage exceeds the required coverage."
+            coverageCovered=true
+          else
+            echo "PR coverage does not exceed the required coverage."
+            coverageCovered=false
+          fi
+          echo "coverageCovered=$coverageCovered" >> $GITHUB_OUTPUT
+          
+      - name: Comment on PR if coverage in not minimum
+        if: steps.coverage-check.outputs.coverageCovered == 'false'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'PR coverage does not exceed the required coverage.'
+            })
+                          

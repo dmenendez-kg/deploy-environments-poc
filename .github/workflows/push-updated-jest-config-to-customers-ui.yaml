@@ -1,0 +1,15 @@
+name: Push Updated Jest Config to customers ui
+
+on:
+  pull_request:
+    types:
+      - closed
+    paths:
+      - 'frontend/customers-ui/**'
+  workflow_dispatch:
+
+jobs:
+  push-updated-coverage-threshold-to-customers-ui:
+    uses: ./.github/workflows/update-ui-code-coverage.yaml
+    with:
+      ui-working-directory: 'frontend/customers-ui'

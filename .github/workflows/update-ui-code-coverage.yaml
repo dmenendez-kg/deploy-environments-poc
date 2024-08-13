@@ -1,0 +1,153 @@
+name: Update UI code coverage
+
+on:
+  workflow_call:
+    inputs:
+      ui-working-directory:
+        description: 'The path of the frontend'
+        required: true
+        type: string
+
+env:
+  CODE_COVERAGE_MODIFIER: ${{ vars.CODE_COVERAGE_MODIFIER }}
+  RAMPING_CODE_COVERAGE_CAP: ${{ vars.RAMPING_CODE_COVERAGE_CAP }}
+
+jobs:
+  push-updated-coverage-threshold-to-ui:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.ui-working-directory }}
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run coverage and print results
+        run: |
+          npm run coverage
+
+      - name: Read and print coverage summary
+        id: coverage
+        run: |
+          coverageFile=coverage/coverage-summary.json
+          if [ -f "$coverageFile" ]; then
+            echo "Coverage file found"
+            cat $coverageFile
+            lineCoverage=$(jq '.total.lines.pct' $coverageFile)
+            statementCoverage=$(jq '.total.statements.pct' $coverageFile)
+            branchCoverage=$(jq '.total.branches.pct' $coverageFile)
+            functionCoverage=$(jq '.total.functions.pct' $coverageFile)
+
+            echo "Total line coverage: $lineCoverage%"
+            echo "Total statement coverage: $statementCoverage"
+            echo "Total branch coverage: $branchCoverage"
+            echo "Total function coverage: $functionCoverage"
+
+            echo "lineCoverage=$lineCoverage" >> $GITHUB_OUTPUT
+            echo "statementCoverage=$statementCoverage" >> $GITHUB_OUTPUT
+            echo "branchCoverage=$branchCoverage" >> $GITHUB_OUTPUT
+            echo "functionCoverage=$functionCoverage" >> $GITHUB_OUTPUT
+          else
+            echo "Coverage file not found!"
+            exit 1
+          fi
+
+      - name: Check if PR coverage exceeds RAMPING_CODE_COVERAGE_CAP
+        id: check-if-coverage-exceeds-cap
+        run: |
+          lineCoverage=${{ steps.coverage.outputs.lineCoverage }}
+          statementCoverage=${{ steps.coverage.outputs.statementCoverage }}
+          branchCoverage=${{ steps.coverage.outputs.branchCoverage }}
+          functionCoverage=${{ steps.coverage.outputs.functionCoverage }}
+
+          RAMPING_CODE_COVERAGE_CAP=${{ env.RAMPING_CODE_COVERAGE_CAP }}
+
+          exceedsCap=false
+
+          if (( $(echo "$lineCoverage >= $RAMPING_CODE_COVERAGE_CAP" | bc -l) )) &&
+            (( $(echo "$statementCoverage >= $RAMPING_CODE_COVERAGE_CAP" | bc -l) )) &&
+            (( $(echo "$branchCoverage >= $RAMPING_CODE_COVERAGE_CAP" | bc -l) )) &&
+            (( $(echo "$functionCoverage >= $RAMPING_CODE_COVERAGE_CAP" | bc -l) )); then
+            exceedsCap=true
+            echo "Coverage exceeds the cap."
+          else
+            echo "Coverage does not exceed the cap."
+          fi
+
+          echo "exceedsCap=$exceedsCap" >> $GITHUB_OUTPUT
+
+      - name: Update coverageThreshold
+        if: steps.check-if-coverage-exceeds-cap.outputs.exceedsCap == 'false'
+        run: |
+          thresholdFile=jest.config.json
+
+          lineCoverage=${{ steps.coverage.outputs.lineCoverage }}
+          statementsCoverage=${{ steps.coverage.outputs.statementCoverage }}
+          branchCoverage=${{ steps.coverage.outputs.branchCoverage }}
+          functionCoverage=${{ steps.coverage.outputs.functionCoverage }}
+
+          updateCoverage() {
+            local coverage=$1
+            local newCoverage=$(echo "$coverage + $CODE_COVERAGE_MODIFIER" | bc -l)
+            
+            if (( $(echo "$coverage >= $RAMPING_CODE_COVERAGE_CAP" | bc -l) )); then
+              newCoverage=$RAMPING_CODE_COVERAGE_CAP
+            elif (( $(echo "$newCoverage >= $RAMPING_CODE_COVERAGE_CAP" | bc -l) )); then
+              newCoverage=$RAMPING_CODE_COVERAGE_CAP
+            fi
+
+            echo $newCoverage
+          }
+
+          if [ -f "$thresholdFile" ]; then
+            echo "Threshold file found"
+
+            newLineCoverage=$(updateCoverage $lineCoverage)
+            newStatementsCoverage=$(updateCoverage $statementsCoverage)
+            newBranchCoverage=$(updateCoverage $branchCoverage)
+            newFunctionCoverage=$(updateCoverage $functionCoverage)
+
+            echo "New Line Coverage: $newLineCoverage"
+            echo "New Statement Coverage: $newStatementsCoverage"
+            echo "New Branch Coverage: $newBranchCoverage"
+            echo "New Function Coverage: $newFunctionCoverage"
+
+            # Using jq to update the thresholds in jest.config.json
+            jq ".coverageThreshold.global.lines = $newLineCoverage | \
+                .coverageThreshold.global.statements = $newStatementsCoverage | \
+                .coverageThreshold.global.branches = $newBranchCoverage | \
+                .coverageThreshold.global.functions = $newFunctionCoverage" $thresholdFile > tmp.$$.json && mv tmp.$$.json $thresholdFile
+
+            cat jest.config.json
+
+          else
+            echo "Threshold file not found"
+            exit 1
+          fi
+
+      - name: Get GitHub username and email
+        id: user_info
+        run: |
+          echo "GITHUB_USERNAME=${{ github.actor }}" >> $GITHUB_ENV
+          git_email=$(git log -1 --pretty=format:'%ae')
+          echo "GITHUB_EMAIL=$git_email" >> $GITHUB_ENV
+
+      - name: Configure Git
+        run: |
+          git config user.name $GITHUB_USERNAME
+          git config user.email $GITHUB_EMAIL
+
+      - name: Commit and push updated jest.config.json
+        run: |
+          git pull
+          git add .
+          git commit -m "Update jest.config.json with new coverage threshold"
+          git push origin HEAD:main

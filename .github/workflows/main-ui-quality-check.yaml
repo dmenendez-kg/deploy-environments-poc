@@ -1,0 +1,16 @@
+name: Check quality on main ui
+
+on:
+  pull_request:
+    # branches:
+    #   - main
+
+    paths:
+      - 'frontend/main-ui/**'
+  workflow_dispatch:
+
+jobs:
+  check-npm-quality-on-main-ui:
+    uses: ./.github/workflows/npm-quality-check.yaml
+    with:
+      ui-working-directory: 'frontend/main-ui'

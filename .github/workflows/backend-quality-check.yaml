@@ -1,0 +1,213 @@
+name: Check code quality on backend (Java)
+
+on:
+  workflow_call:
+    inputs:
+      backend-working-directory:
+        description: 'The path of the backend'
+        required: true
+        type: string
+
+env:
+  CODE_COVERAGE_MODIFIER: ${{ vars.CODE_COVERAGE_MODIFIER }}
+  RAMPING_CODE_COVERAGE_CAP: ${{ vars.RAMPING_CODE_COVERAGE_CAP }}
+
+jobs:
+  check-code-coverage-on-main-backend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.backend-working-directory }}
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'oracle'
+
+      - name: Install xmllint
+        run: sudo apt-get install -y libxml2-utils
+
+      - name: Checkstyle for Java
+        uses: dbelyaev/action-checkstyle@master
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review 
+
+      - name: Build with Maven
+        run: mvn clean verify
+
+      - name: Unit tests Report
+        uses: dorny/test-reporter@v1
+        if: success() || failure()    
+        with:
+          name: JUnit Tests            
+          path: ${{ inputs.backend-working-directory }}/target/surefire-reports/TEST-*.xml
+          reporter: java-junit
+      
+      - name: Dependency check
+        uses: dependency-check/Dependency-Check_Action@main
+        env:
+          JAVA_HOME: /opt/jdk
+        with:
+          project: 'Moneris Insights'
+          path: ${{ inputs.backend-working-directory }}
+          format: 'HTML'
+          out: 'reports'
+          
+      - name: Upload Dependency Report results
+        uses: actions/upload-artifact@master
+        with:
+            name: Dependency check report
+            path: ${{github.workspace}}/reports
+      
+      - name: 'Dependency Review'
+        uses: actions/dependency-review-action@v4
+        with:
+          comment-summary-in-pr: always
+
+      - name: Jacoco Code Coverage
+        run: mvn jacoco:report
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: target/site/jacoco/
+
+      - name: Read and print coverage summary
+        id: pull-request-coverage
+        run: |
+          # Path to the Jacoco report
+          report_path="target/site/jacoco/jacoco.xml"
+
+          # Extract the line coverage percentage
+          line_coverage=$(xmllint --xpath "string(//report/counter[@type='LINE']/@covered)" $report_path)
+          total_lines=$(xmllint --xpath "string(//report/counter[@type='LINE']/@missed)" $report_path)
+          total_lines=$((line_coverage + total_lines))
+          line_coverage=$((line_coverage * 100 / total_lines))
+
+          # Extract the branch coverage percentage
+          branch_coverage=$(xmllint --xpath "string(//report/counter[@type='BRANCH']/@covered)" $report_path)
+          total_lines=$(xmllint --xpath "string(//report/counter[@type='BRANCH']/@missed)" $report_path)
+          total_lines=$((branch_coverage + total_lines))
+          branch_coverage=$((branch_coverage * 100 / total_lines))
+
+          # Extract the instruction coverage percentage
+          instruction_coverage=$(xmllint --xpath "string(//report/counter[@type='INSTRUCTION']/@covered)" $report_path)
+          total_lines=$(xmllint --xpath "string(//report/counter[@type='INSTRUCTION']/@missed)" $report_path)
+          total_lines=$((instruction_coverage + total_lines))
+          instruction_coverage=$((instruction_coverage * 100 / total_lines))
+
+          echo "Line Coverage: $line_coverage%"
+          echo "Branch Coverage: $branch_coverage%"
+          echo "Instructions Coverage: $instruction_coverage%"
+
+          echo "line_coverage=$line_coverage" >> $GITHUB_OUTPUT
+          echo "branch_coverage=$branch_coverage" >> $GITHUB_OUTPUT
+          echo "instruction_coverage=$instruction_coverage" >> $GITHUB_OUTPUT
+
+      - name: Check if PR coverage exceeds RAMPING_CODE_COVERAGE_CAP
+        id: check-if-coverage-exceeds-cap
+        run: |
+          line_coverage=${{ steps.pull-request-coverage.outputs.line_coverage }}
+          branch_coverage=${{ steps.pull-request-coverage.outputs.branch_coverage }}
+          instruction_coverage=${{ steps.pull-request-coverage.outputs.instruction_coverage }}
+          RAMPING_CODE_COVERAGE_CAP=${{ env.RAMPING_CODE_COVERAGE_CAP }}
+
+          exceedsCap=false
+
+          if (( $(echo "$line_coverage >= $RAMPING_CODE_COVERAGE_CAP" | bc -l) ))
+            (( $(echo "$branch_coverage >= $RAMPING_CODE_COVERAGE_CAP" | bc -l) )) &&
+            (( $(echo "$instruction_coverage >= $RAMPING_CODE_COVERAGE_CAP" | bc -l) )); then
+            exceedsCap=true
+            echo "Coverage exceeds the cap."
+          else
+            echo "Coverage does not exceed the cap."
+          fi
+
+          echo "exceedsCap=$exceedsCap" >> $GITHUB_OUTPUT
+
+      - name: Fetch main branch
+        if: steps.check-if-coverage-exceeds-cap.outputs.exceedsCap == 'false'
+        run: git fetch origin main:main
+
+      - name: Checkout main branch test.config.json
+        if: steps.check-if-coverage-exceeds-cap.outputs.exceedsCap == 'false'
+        run: |
+          git checkout main -- test.config.json
+          cat test.config.json
+
+      - name: Extract coverage threshold from main branch
+        if: steps.check-if-coverage-exceeds-cap.outputs.exceedsCap == 'false'
+        id: extract-min-code-coverage-from-main
+        run: |
+          thresholdFile=test.config.json
+          if [ -f "$thresholdFile" ]; then
+            echo "Threshold file found"
+            mainLineCoverage=$(jq '.coverageThreshold.global.lines' $thresholdFile)
+            mainBranchCoverage=$(jq '.coverageThreshold.global.branches' $thresholdFile)
+            mainInstructionCoverage=$(jq '.coverageThreshold.global.instructions' $thresholdFile)
+
+            requiredLineCoverage=$(($mainLineCoverage + CODE_COVERAGE_MODIFIER))
+            requiredBranchCoverage=$(($mainBranchCoverage + CODE_COVERAGE_MODIFIER))
+            requiredInstructionCoverage=$(($mainInstructionCoverage + CODE_COVERAGE_MODIFIER))
+
+            echo "Total line coverage: $mainLineCoverage%"
+            echo "Total branch coverage: $mainBranchCoverage%"
+            echo "Total instruction coverage: $mainInstructionCoverage%"
+
+            echo "Required line coverage: $requiredLineCoverage%"
+            echo "Required branch coverage: $requiredBranchCoverage%"
+            echo "Required instruction coverage: $requiredInstructionCoverage%"
+
+            echo "mainLineCoverage=$mainLineCoverage" >> $GITHUB_OUTPUT
+            echo "mainBranchCoverage=$mainBranchCoverage" >> $GITHUB_OUTPUT
+            echo "mainInstructionCoverage=$mainInstructionCoverage" >> $GITHUB_OUTPUT
+
+            echo "requiredLineCoverage=$requiredLineCoverage" >> $GITHUB_OUTPUT
+            echo "requiredBranchCoverage=$requiredLineCoverage" >> $GITHUB_OUTPUT
+            echo "requiredInstructionCoverage=$requiredLineCoverage" >> $GITHUB_OUTPUT
+          else
+            echo "Threshold file not found"
+            exit 1
+          fi
+
+      - name: Check if PR coverage exceeds required coverage
+        id: coverage-check
+        if: steps.check-if-coverage-exceeds-cap.outputs.exceedsCap == 'false'
+        run: |
+          line_coverage=${{ steps.pull-request-coverage.outputs.line_coverage }}
+          branch_coverage=${{ steps.pull-request-coverage.outputs.branch_coverage }}
+          instruction_coverage=${{ steps.pull-request-coverage.outputs.instruction_coverage }}
+
+          requiredLineCoverage=${{ steps.extract-min-code-coverage-from-main.outputs.requiredLineCoverage }}
+          requiredBranchCoverage=${{ steps.extract-min-code-coverage-from-main.outputs.requiredBranchCoverage }}
+          requiredInstructionCoverage=${{ steps.extract-min-code-coverage-from-main.outputs.requiredInstructionCoverage }}
+
+          if (( $(echo "$line_coverage >= $requiredLineCoverage" | bc -l) )) &&
+            (( $(echo "$branch_coverage >= $requiredBranchCoverage" | bc -l) )) &&
+            (( $(echo "$instruction_coverage >= $requiredInstructionCoverage" | bc -l) )); then
+            echo "PR coverage exceeds the required coverage."
+            coverageCovered=true
+          else
+            echo "PR coverage does not exceed the required coverage."
+            coverageCovered=false
+          fi
+          echo "coverageCovered=$coverageCovered" >> $GITHUB_OUTPUT
+
+
+      - name: Comment on PR if coverage in not minimum
+        if: steps.coverage-check.outputs.coverageCovered == 'false'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: 'PR coverage does not exceed the required coverage.'
+            })

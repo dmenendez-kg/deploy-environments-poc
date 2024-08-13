@@ -1,0 +1,16 @@
+name: Check code quality on notification-backend
+
+on:
+  pull_request:
+    branches:
+      - main
+
+    paths:
+      - "backend/notification-backend/**"
+  workflow_dispatch:
+
+jobs:
+  check-code-coverage-on-notification-backend:
+    uses: ./.github/workflows/backend-quality-check.yaml
+    with:
+      backend-working-directory: 'backend/notification-backend'
