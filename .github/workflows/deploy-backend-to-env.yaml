@@ -34,6 +34,15 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
+      - name: Print test
+        id: pull-request-coverage
+        run: |
+          echo ${{env}}
+          echo ${{inputs.environment}}
+          echo ${{inputs.environment}}
+          echo ${{env[inputs.environment]}}
+          echo ${{env[inputs.environment].AZURE_MAIN_BACKEND_APP_NAME}}
+
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
