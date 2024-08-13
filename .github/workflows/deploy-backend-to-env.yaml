@@ -38,7 +38,7 @@ jobs:
         with:
           azure-subscription: ${{ env.AZURE_SUBSCRIPTION }}
           action: deploy
-          service-name: moneris-main-backend
-          app-name: moneris-main-backend
+          service-name: "moneris-main-backend"
+          app-name: "moneris-main-backend"
           use-staging-deployment: false
           package: ${{ env.ASC_PACKAGE_PATH }}/**/*.jar
