@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites name="jest tests" tests="3" failures="2" errors="0" time="1.163">
+  <testsuite name="undefined" errors="0" failures="2" skipped="0" timestamp="2024-08-09T14:57:09" time="0.719" tests="3">
+    <testcase classname=" Heading should be Vite + React" name=" Heading should be Vite + React" time="0.017">
+    </testcase>
+    <testcase classname=" increments count when button is clicked" name=" increments count when button is clicked" time="0.001">
+      <failure>TestingLibraryElementError: Unable to find an accessible element with the role &quot;button&quot; and name `/count is 0/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+&lt;body /&gt;
+    at Object.getElementError (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/@testing-library/dom/dist/config.js:37:19)
+    at /Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+    at /Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+    at /Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+    at Object.getByRole (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/src/competition-ui.test.tsx:15:32)
+    at Promise.then.completed (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/run.js:126:9)
+    at run (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+    <testcase classname=" button starts with count of 0" name=" button starts with count of 0" time="0.001">
+      <failure>TestingLibraryElementError: Unable to find an accessible element with the role &quot;button&quot; and name `/count is 0/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+&lt;body /&gt;
+    at Object.getElementError (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/@testing-library/dom/dist/config.js:37:19)
+    at /Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+    at /Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+    at /Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+    at Object.getByRole (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/src/competition-ui.test.tsx:27:32)
+    at Promise.then.completed (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/utils.js:298:28)
+    at new Promise (&lt;anonymous&gt;)
+    at callAsyncCircusFn (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/utils.js:231:10)
+    at _callCircusTest (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/run.js:316:40)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at _runTest (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/run.js:252:3)
+    at _runTestsForDescribeBlock (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/run.js:126:9)
+    at run (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/run.js:71:3)
+    at runAndTransformResultsToJestFormat (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapterInit.js:122:21)
+    at jestAdapter (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-circus/build/legacy-code-todo-rewrite/jestAdapter.js:79:19)
+    at runTestInternal (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-runner/build/runTest.js:367:16)
+    at runTest (/Users/bwong/Desktop/dev/react-vite-with-jest-main/frontend/competition-ui/node_modules/jest-runner/build/runTest.js:444:34)</failure>
+    </testcase>
+  </testsuite>
+</testsuites>
