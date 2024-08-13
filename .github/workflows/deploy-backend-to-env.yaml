@@ -1,11 +1,10 @@
-name: AzureSpringApps
+name: Deploy backend to Azure
 on:
   workflow_dispatch:
     inputs:
-      logLevel:
-        description: "Log level"
-        required: true
-        default: "warning"
+      environment:
+        type: environment
+        description: Select the environment
 env:
   ASC_PACKAGE_PATH: ${{ github.workspace }}
 
