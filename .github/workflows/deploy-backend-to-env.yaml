@@ -39,7 +39,9 @@ jobs:
         run: |
           echo ${{env}}
           echo ${{inputs.environment}}
-          echo ${{inputs.environment}}
+          echo ${{inputs.environment.env.AZURE_MAIN_BACKEND_APP_NAME}}
+          echo ${{inputs.environment.AZURE_MAIN_BACKEND_APP_NAME}}
+          echo ${{env.AZURE_MAIN_BACKEND_APP_NAME}}
           echo ${{env[inputs.environment]}}
           echo ${{env[inputs.environment].AZURE_MAIN_BACKEND_APP_NAME}}
 
