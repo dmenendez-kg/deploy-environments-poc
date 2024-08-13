@@ -1,0 +1,37 @@
+name: AzureSpringApps
+on: push
+env:
+  ASC_PACKAGE_PATH: ${{ github.workspace }}
+  AZURE_SUBSCRIPTION: 4952f46b-2d60-47f0-bfd2-5e83a35070aa
+
+jobs:
+  deploy_to_production:
+    runs-on: ubuntu-latest
+    name: deploy to production with soruce code
+    steps:
+      - name: Checkout Github Action
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 1.8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - name: maven build, clean
+        run: |
+          mvn clean package
+
+      - name: Login via Azure CLI
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: deploy to production step with soruce code
+        uses: azure/spring-apps-deploy@v1
+        with:
+          azure-subscription: ${{ env.AZURE_SUBSCRIPTION }}
+          action: deploy
+          service-name: moneris-main-backend
+          app-name: moneris-main-backend
+          use-staging-deployment: false
+          package: ${{ env.ASC_PACKAGE_PATH }}/**/*.jar
