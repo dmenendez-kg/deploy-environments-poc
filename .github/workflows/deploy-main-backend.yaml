@@ -10,12 +10,16 @@ on:
 jobs:
   deploy_to_dev:
     uses: ./.github/workflows/deploy-backend-to-env.yaml
+    strategy:
+      matrix:
+        environment: [Dev]
     with:
       working-directory: "backend/main-backend"
-      environment: Dev
   deploy_to_qa:
     uses: ./.github/workflows/deploy-backend-to-env.yaml
     needs: deploy_to_dev
+    strategy:
+      matrix:
+        environment: [QA]
     with:
       working-directory: "backend/main-backend"
-      environment: QA

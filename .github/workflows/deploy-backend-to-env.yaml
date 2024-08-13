@@ -7,16 +7,12 @@ on:
         description: "The path of the backend"
         required: true
         type: string
-      environment:
-        description: "Environment to deploy"
-        type: environment
-        required: true
 
 jobs:
   deploy_to_environment:
     runs-on: ubuntu-latest
-    name: Deploying ${{ inputs.working-directory }} to ${{ inputs.environment }}
-    environment: ${{ inputs.environment }}
+    name: Deploying ${{ inputs.working-directory }} to ${{ matrix.environment }}
+    environment: ${{ matrix.environment }}
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
