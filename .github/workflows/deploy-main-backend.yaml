@@ -1,0 +1,21 @@
+name: Check code quality on main-backend
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/main-backend/**"
+
+jobs:
+  deploy_to_dev:
+    uses: ./.github/workflows/deploy-backend-to-env.yaml
+    with:
+      working-directory: "backend/main-backend"
+      environment: Dev
+  deploy_to_qa:
+    uses: ./.github/workflows/deploy-backend-to-env.yaml
+    needs: deploy_to_dev
+    with:
+      working-directory: "backend/main-backend"
+      environment: QA
