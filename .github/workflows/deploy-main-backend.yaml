@@ -1,4 +1,4 @@
-name: Check code quality on main-backend
+name: Deploy main-backend
 
 on:
   push:
