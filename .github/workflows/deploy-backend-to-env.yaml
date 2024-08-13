@@ -38,5 +38,4 @@ jobs:
         uses: azure/webapps-deploy@v3
         with:
           app-name: "moneris-main-backend"
-          slot-name: "Production"
           package: "*.jar"
