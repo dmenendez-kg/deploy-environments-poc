@@ -1,11 +1,13 @@
 name: AzureSpringApps
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: "Log level"
+        required: true
+        default: "warning"
 env:
   ASC_PACKAGE_PATH: ${{ github.workspace }}
-  AZURE_SUBSCRIPTION: 4952f46b-2d60-47f0-bfd2-5e83a35070aa
 
 jobs:
   deploy_to_production:
