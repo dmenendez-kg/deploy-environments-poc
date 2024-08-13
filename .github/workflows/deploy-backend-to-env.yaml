@@ -38,5 +38,5 @@ jobs:
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: "moneris-main-backend"
+          app-name: ${{ env.AZURE_MAIN_BACKEND_APP_NAME }}
           package: "*.jar"
