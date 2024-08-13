@@ -25,7 +25,7 @@ jobs:
           java-version: "21"
           distribution: "oracle"
 
-      - name: maven build, clean
+      - name: Maven Clean & Build
         run: |
           mvn clean package
 
@@ -76,8 +76,8 @@ jobs:
           package: "*.jar"
   deploy_to_stage:
     runs-on: ubuntu-latest
-    name: Deploying main-backend to QA
-    needs: deploy_to_dev
+    name: Deploying main-backend to Stage
+    needs: deploy_to_qa
     environment: Stage
     defaults:
       run:
@@ -109,8 +109,8 @@ jobs:
           package: "*.jar"
   deploy_to_prod:
     runs-on: ubuntu-latest
-    name: Deploying main-backend to QA
-    needs: deploy_to_dev
+    name: Deploying main-backend to Prod
+    needs: deploy_to_stage
     environment: Prod
     defaults:
       run:
