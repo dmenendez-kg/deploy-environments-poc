@@ -1,4 +1,4 @@
-name: Deploy main-backend
+name: Deploy main-backend to Azure
 
 on:
   push:
