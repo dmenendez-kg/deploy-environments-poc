@@ -44,6 +44,7 @@ jobs:
   deploy_to_qa:
     runs-on: ubuntu-latest
     name: Deploying main-backend to QA
+    needs: deploy_to_dev
     environment: QA
     defaults:
       run:
