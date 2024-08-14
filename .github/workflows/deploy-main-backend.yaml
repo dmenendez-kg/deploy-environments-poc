@@ -54,7 +54,7 @@ jobs:
 
       - name: Test command
         run: |
-          ls -R build
+          ls -a
 
       # - name: Login to Azure
       #   uses: azure/login@v2
