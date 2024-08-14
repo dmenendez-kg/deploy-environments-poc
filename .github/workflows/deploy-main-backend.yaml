@@ -32,7 +32,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: ./**
+          path: ./backend/main-backend/**
 
   deploy_to_dev:
     runs-on: ubuntu-latest
@@ -54,7 +54,6 @@ jobs:
 
       - name: Test command
         run: |
-          cd ./backend/main-backend
           ls -a
 
       # - name: Login to Azure
