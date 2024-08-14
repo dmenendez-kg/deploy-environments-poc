@@ -28,42 +28,45 @@ jobs:
         run: |
           mvn clean package
 
-      - name: Test command
-        run: |
-          ls -a
-
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: build
           path: ./**
 
-  # deploy_to_dev:
-  #   runs-on: ubuntu-latest
-  #   name: Deploying main-backend to Dev
-  #   needs: build_backend
-  #   environment: Dev
-  #   steps:
-  #     - name: Checkout Github Action
-  #       uses: actions/checkout@v4
+  deploy_to_dev:
+    runs-on: ubuntu-latest
+    name: Deploying main-backend to Dev
+    needs: build_backend
+    environment: Dev
+    defaults:
+      run:
+        working-directory: build
+    steps:
+      - name: Checkout Github Action
+        uses: actions/checkout@v4
 
-  #     - name: Download Artifact
-  #       uses: actions/download-artifact@v4
-  #       with:
-  #         name: build
-  #         path: build
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: ./
 
-  #     - name: Login to Azure
-  #       uses: azure/login@v2
-  #       with:
-  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Test command
+        run: |
+          ls -a
 
-  #     - name: Deploy to Azure Web App
-  #       id: deploy-to-webapp
-  #       uses: azure/webapps-deploy@v3
-  #       with:
-  #         app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
-  #         package: "*.jar"
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
+          package: "*.jar"
 
   # deploy_to_qa:
   #   runs-on: ubuntu-latest
