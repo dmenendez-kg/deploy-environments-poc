@@ -54,6 +54,7 @@ jobs:
 
       - name: Test command
         run: |
+          cd ./backend/main-backend
           ls -a
 
       # - name: Login to Azure
