@@ -54,8 +54,7 @@ jobs:
 
       - name: Test command
         run: |
-          cd /backend/main-backend
-          ls -a
+          ls -R build
 
       # - name: Login to Azure
       #   uses: azure/login@v2
