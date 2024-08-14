@@ -52,107 +52,104 @@ jobs:
           name: build
           path: build
 
-      - name: Test command
-        run: |
-          ls -a
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # - name: Login to Azure
-      #   uses: azure/login@v2
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
+          package: "*.jar"
 
-      # - name: Deploy to Azure Web App
-      #   id: deploy-to-webapp
-      #   uses: azure/webapps-deploy@v3
-      #   with:
-      #     app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
-      #     package: "*.jar"
+  deploy_to_qa:
+    runs-on: ubuntu-latest
+    name: Deploying main-backend to QA
+    needs: deploy_to_dev
+    environment: QA
+    defaults:
+      run:
+        working-directory: backend/main-backend
+    steps:
+      - name: Checkout Github Action
+        uses: actions/checkout@v4
 
-  # deploy_to_qa:
-  #   runs-on: ubuntu-latest
-  #   name: Deploying main-backend to QA
-  #   needs: deploy_to_dev
-  #   environment: QA
-  #   defaults:
-  #     run:
-  #       working-directory: backend/main-backend
-  #   steps:
-  #     - name: Checkout Github Action
-  #       uses: actions/checkout@v4
+      - name: Download Artifact
+        uses: actions/download-artifact@4
+        with:
+          name: build
+          path: build
 
-  #     - name: Download Artifact
-  #       uses: actions/download-artifact@4
-  #       with:
-  #         name: build
-  #         path: build
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-  #     - name: Login to Azure
-  #       uses: azure/login@v2
-  #       with:
-  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
+          package: "*.jar"
 
-  #     - name: Deploy to Azure Web App
-  #       id: deploy-to-webapp
-  #       uses: azure/webapps-deploy@v3
-  #       with:
-  #         app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
-  #         package: "*.jar"
+  deploy_to_stage:
+    runs-on: ubuntu-latest
+    name: Deploying main-backend to Stage
+    needs: deploy_to_qa
+    environment: Stage
+    defaults:
+      run:
+        working-directory: build
+    steps:
+      - name: Checkout Github Action
+        uses: actions/checkout@v4
 
-  # deploy_to_stage:
-  #   runs-on: ubuntu-latest
-  #   name: Deploying main-backend to Stage
-  #   needs: deploy_to_qa
-  #   environment: Stage
-  #   defaults:
-  #     run:
-  #       working-directory: backend/main-backend
-  #   steps:
-  #     - name: Checkout Github Action
-  #       uses: actions/checkout@v4
+      - name: Download Artifact
+        uses: actions/download-artifact@4
+        with:
+          name: build
+          path: build
 
-  #     - name: Download Artifact
-  #       uses: actions/download-artifact@4
-  #       with:
-  #         name: build
-  #         path: build
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-  #     - name: Login to Azure
-  #       uses: azure/login@v2
-  #       with:
-  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
+          package: "*.jar"
 
-  #     - name: Deploy to Azure Web App
-  #       id: deploy-to-webapp
-  #       uses: azure/webapps-deploy@v3
-  #       with:
-  #         app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
-  #         package: "*.jar"
-  # deploy_to_prod:
-  #   runs-on: ubuntu-latest
-  #   name: Deploying main-backend to Prod
-  #   needs: deploy_to_stage
-  #   environment: Prod
-  #   defaults:
-  #     run:
-  #       working-directory: backend/main-backend
-  #   steps:
-  #     - name: Checkout Github Action
-  #       uses: actions/checkout@v4
+  deploy_to_prod:
+    runs-on: ubuntu-latest
+    name: Deploying main-backend to Prod
+    needs: deploy_to_stage
+    environment: Prod
+    defaults:
+      run:
+        working-directory: build
+    steps:
+      - name: Checkout Github Action
+        uses: actions/checkout@v4
 
-  #     - name: Download Artifact
-  #       uses: actions/download-artifact@4
-  #       with:
-  #         name: build
-  #         path: build
+      - name: Download Artifact
+        uses: actions/download-artifact@4
+        with:
+          name: build
+          path: build
 
-  #     - name: Login to Azure
-  #       uses: azure/login@v2
-  #       with:
-  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-  #     - name: Deploy to Azure Web App
-  #       id: deploy-to-webapp
-  #       uses: azure/webapps-deploy@v3
-  #       with:
-  #         app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
-  #         package: "*.jar"
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
+          package: "*.jar"
