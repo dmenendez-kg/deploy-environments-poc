@@ -39,6 +39,9 @@ jobs:
     name: Deploying main-backend to Dev
     needs: build_backend
     environment: Dev
+    defaults:
+      run:
+        working-directory: build
     steps:
       - name: Checkout Github Action
         uses: actions/checkout@v4
@@ -51,7 +54,8 @@ jobs:
 
       - name: Test command
         run: |
-          ls -R build
+          cd /backend/main-backend
+          ls -a
 
       # - name: Login to Azure
       #   uses: azure/login@v2
