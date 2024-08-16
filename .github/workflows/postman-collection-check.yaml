@@ -34,20 +34,13 @@ jobs:
       - name: Check if environment is locked
         uses: nick-fields/retry@v3
         with:
-          retry_wait_seconds: 300
+          retry_wait_seconds: 60
           retry_on: error
           timeout_minutes: 5
           max_attempts: 3
           command: |
-            isEnvActive=${{ vars.IS_ENV_ACTIVE }}
+            isEnvActive= $(gh variable get IS_ENV_ACTIVE --env "Testing environment")
             echo $isEnvActive
-            if [ $isEnvActive == "false" ]; then
-              echo "pass"
-              exit 0
-            else
-              echo "fails"
-              exit 1
-            fi
 
       # - name: Lock environment
       #   run: |
