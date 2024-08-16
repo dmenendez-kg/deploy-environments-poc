@@ -18,14 +18,29 @@ jobs:
     steps:
       - name: Checkout Github Action
         uses: actions/checkout@v4
-      # - name: Test command
-      #   run: |
-      #     echo ${{vars.IS_ENV_ACTIVE}}
-      #     gh variable set IS_ENV_ACTIVE --body "1" --env "Testing environment"
-      #     echo ${{vars.IS_ENV_ACTIVE}}
+
+      - name: Check if environment is active
+        uses: nick-fields/retry@v3
+        with:
+          timeout_minutes: 5
+          max_attempts: 3
+          command: |
+            IS_ENV_ACTIVE=${{ vars.IS_ENV_ACTIVE }}
+
+            if (( $IS_ENV_ACTIVE == "false" )); then
+              exit 0
+            else
+              exit 1
+            fi
+      - name: Lock environment
+        run: |
+          gh variable set IS_ENV_ACTIVE --body "true" --env "Testing environment"
       - name: Run Postman Collection
         uses: matt-ball/newman-action@master
         with:
           # collection: ./backend/postman/Moneris Insights POC.postman_collection.json
           apiKey: ${{ secrets.POSTMAN_API_KEY }}
           collection: ${{vars.POSTMAN_COLLECTION_ID}}
+      - name: Lock environment
+        run: |
+          gh variable set IS_ENV_ACTIVE --body "false" --env "Testing environment"
