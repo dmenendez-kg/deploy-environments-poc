@@ -12,6 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Build main-backend and upload artifact
     environment: Testing environment
+    permissions: write-all
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
