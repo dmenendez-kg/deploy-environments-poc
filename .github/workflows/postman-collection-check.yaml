@@ -1,7 +1,7 @@
 name: Check postman collection
 
 on:
-  push:
+  pull_request:
     branches:
       - main
     paths:
@@ -10,7 +10,7 @@ on:
 jobs:
   check_postman_collection:
     runs-on: ubuntu-latest
-    name: Build main-backend and upload artifact
+    name: Deploy to testing environment and runs Postman Collection tests
     environment: Testing environment
     permissions: write-all
     env:
@@ -18,6 +18,16 @@ jobs:
     steps:
       - name: Checkout Github Action
         uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "oracle"
+
+      - name: Maven Clean & Build
+        run: |
+          mvn clean package
 
       - name: Check if environment is active
         uses: nick-fields/retry@v3
@@ -32,15 +42,36 @@ jobs:
             else
               exit 1
             fi
+
       - name: Lock environment
         run: |
           gh variable set IS_ENV_ACTIVE --body "true" --env "Testing environment"
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
+          package: "*.jar"
+
+      - name: Azure Restart WebApp
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            azure webapp restart --resource-group ${{vars.AZURE_RESOURCE_GROUP}} --name ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
+
       - name: Run Postman Collection
         uses: matt-ball/newman-action@master
         with:
-          # collection: ./backend/postman/Moneris Insights POC.postman_collection.json
           apiKey: ${{ secrets.POSTMAN_API_KEY }}
           collection: ${{vars.POSTMAN_COLLECTION_ID}}
-      - name: Lock environment
+
+      - name: Unlock environment
         run: |
           gh variable set IS_ENV_ACTIVE --body "false" --env "Testing environment"
