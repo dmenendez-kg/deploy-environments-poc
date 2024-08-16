@@ -40,7 +40,7 @@ jobs:
           max_attempts: 10
           command: |
             gh variable get IS_ENV_ACTIVE --env "Testing environment"
-            isEnvActive= $(gh variable get IS_ENV_ACTIVE --env "Testing environment")
+            isEnvActive=$(echo gh variable get IS_ENV_ACTIVE --env "Testing environment")
             echo "$isEnvActive"
             echo "Testing ${{vars.IS_ENV_ACTIVE}}"
             isActive=${{vars.IS_ENV_ACTIVE}}
