@@ -38,8 +38,8 @@ jobs:
           max_attempts: 3
           command: |
             isEnvActive=${{ vars.IS_ENV_ACTIVE }}
-            echo isEnvActive
-            if (( $IS_ENV_ACTIVE == "false" )); then
+            echo $isEnvActive
+            if (( $isEnvActive == "false" )); then
               echo "pass"
               exit 0
             else
