@@ -40,7 +40,9 @@ jobs:
           max_attempts: 3
           command: |
             isEnvActive= $(gh variable get IS_ENV_ACTIVE --env "Testing environment")
-            echo $isEnvActive
+            echo "$isEnvActive"
+            echo "Testing"
+            exit 0
 
       # - name: Lock environment
       #   run: |
