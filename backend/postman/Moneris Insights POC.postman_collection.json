@@ -1,0 +1,31 @@
+{
+	"info": {
+		"_postman_id": "1e4d3aa5-452f-4956-941b-682804c9cce3",
+		"name": "Moneris Insights POC",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "1388412"
+	},
+	"item": [
+		{
+			"name": "Dev",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://main-backend-dev-aabedabsend4btbp.eastus-01.azurewebsites.net/test",
+					"protocol": "https",
+					"host": [
+						"main-backend-dev-aabedabsend4btbp",
+						"eastus-01",
+						"azurewebsites",
+						"net"
+					],
+					"path": [
+						"test"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
