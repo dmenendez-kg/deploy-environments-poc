@@ -18,6 +18,8 @@ jobs:
       - name: Test command
         run: |
           echo ${{vars.IS_ENV_ACTIVE}}
+          gh variable set IS_ENV_ACTIVE --body "1"
+          echo ${{vars.IS_ENV_ACTIVE}}
       # - name: Run Postman Collection
       #   uses: matt-ball/newman-action@master
       #   with:
