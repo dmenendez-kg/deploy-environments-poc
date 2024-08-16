@@ -31,17 +31,20 @@ jobs:
         run: |
           mvn clean package
 
-      - name: Check if environment is active
+      - name: Check if environment is locked
         uses: nick-fields/retry@v3
         with:
+          retry_wait_seconds: 30
+          retry_on: error
           timeout_minutes: 5
-          max_attempts: 3
+          max_attempts: 10
           command: |
-            IS_ENV_ACTIVE=${{ vars.IS_ENV_ACTIVE }}
-
-            if (( $IS_ENV_ACTIVE == "false" )); then
+            isEnvActive=$(echo $(gh variable get IS_ENV_ACTIVE --env "Testing environment"))
+            if [[ $isEnvActive == "false" ]]; then
+              echo "pass"
               exit 0
             else
+              echo "fail"
               exit 1
             fi
 
@@ -66,7 +69,7 @@ jobs:
         with:
           azcliversion: latest
           inlineScript: |
-            azure webapp restart --resource-group ${{vars.AZURE_RESOURCE_GROUP}} --name ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
+            az webapp restart --resource-group ${{vars.AZURE_RESOURCE_GROUP}} --name ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
 
       - name: Run Postman Collection
         uses: matt-ball/newman-action@master
@@ -75,5 +78,6 @@ jobs:
           collection: ${{vars.POSTMAN_COLLECTION_ID}}
 
       - name: Unlock environment
+        if: always()
         run: |
           gh variable set IS_ENV_ACTIVE --body "false" --env "Testing environment"
