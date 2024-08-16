@@ -21,15 +21,15 @@ jobs:
       - name: Checkout Github Action
         uses: actions/checkout@v4
 
-      # - name: Set up JDK 21
-      #   uses: actions/setup-java@v4
-      #   with:
-      #     java-version: "21"
-      #     distribution: "oracle"
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: "21"
+          distribution: "oracle"
 
-      # - name: Maven Clean & Build
-      #   run: |
-      #     mvn clean package
+      - name: Maven Clean & Build
+        run: |
+          mvn clean package
 
       - name: Check if environment is locked
         uses: nick-fields/retry@v3
@@ -39,13 +39,8 @@ jobs:
           timeout_minutes: 5
           max_attempts: 10
           command: |
-            gh variable get IS_ENV_ACTIVE --env "Testing environment"
             isEnvActive=$(echo $(gh variable get IS_ENV_ACTIVE --env "Testing environment"))
-            echo "$isEnvActive"
-            echo "Testing ${{vars.IS_ENV_ACTIVE}}"
-            isActive=${{vars.IS_ENV_ACTIVE}}
-            echo "Testing again $isActive"
-            if [[ $isActive == "false" ]]; then
+            if [[ $isEnvActive == "false" ]]; then
               echo "pass"
               exit 0
             else
@@ -53,35 +48,36 @@ jobs:
               exit 1
             fi
 
-      # - name: Lock environment
-      #   run: |
-      #     gh variable set IS_ENV_ACTIVE --body "true" --env "Testing environment"
+      - name: Lock environment
+        run: |
+          gh variable set IS_ENV_ACTIVE --body "true" --env "Testing environment"
 
-      # - name: Login to Azure
-      #   uses: azure/login@v2
-      #   with:
-      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # - name: Deploy to Azure Web App
-      #   id: deploy-to-webapp
-      #   uses: azure/webapps-deploy@v3
-      #   with:
-      #     app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
-      #     package: "*.jar"
+      - name: Deploy to Azure Web App
+        id: deploy-to-webapp
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
+          package: "*.jar"
 
-      # - name: Azure Restart WebApp
-      #   uses: azure/cli@v2
-      #   with:
-      #     azcliversion: latest
-      #     inlineScript: |
-      #       az webapp restart --resource-group ${{vars.AZURE_RESOURCE_GROUP}} --name ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
+      - name: Azure Restart WebApp
+        uses: azure/cli@v2
+        with:
+          azcliversion: latest
+          inlineScript: |
+            az webapp restart --resource-group ${{vars.AZURE_RESOURCE_GROUP}} --name ${{ vars.AZURE_MAIN_BACKEND_APP_NAME }}
 
-      # - name: Run Postman Collection
-      #   uses: matt-ball/newman-action@master
-      #   with:
-      #     apiKey: ${{ secrets.POSTMAN_API_KEY }}
-      #     collection: ${{vars.POSTMAN_COLLECTION_ID}}
+      - name: Run Postman Collection
+        uses: matt-ball/newman-action@master
+        with:
+          apiKey: ${{ secrets.POSTMAN_API_KEY }}
+          collection: ${{vars.POSTMAN_COLLECTION_ID}}
 
-      # - name: Unlock environment
-      #   run: |
-      #     gh variable set IS_ENV_ACTIVE --body "false" --env "Testing environment"
+      - name: Unlock environment
+        if: always()
+        run: |
+          gh variable set IS_ENV_ACTIVE --body "false" --env "Testing environment"
