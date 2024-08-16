@@ -40,7 +40,8 @@ jobs:
           max_attempts: 10
           command: |
             isEnvActive= $(gh variable get IS_ENV_ACTIVE --env "Testing environment")
-            if [ $isEnvActive == "false" ]; then
+            echo "Current status: $isEnvActive"
+            if [[ $isEnvActive == "false" ]]; then
               echo "pass"
               exit 0
             else
