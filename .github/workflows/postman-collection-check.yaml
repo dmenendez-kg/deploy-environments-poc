@@ -18,12 +18,14 @@ jobs:
     steps:
       - name: Checkout Github Action
         uses: actions/checkout@v4
-      - name: Test command
-        run: |
-          echo ${{vars.IS_ENV_ACTIVE}}
-          gh variable set IS_ENV_ACTIVE --body "1" --env "Testing environment"
-          echo ${{vars.IS_ENV_ACTIVE}}
-      # - name: Run Postman Collection
-      #   uses: matt-ball/newman-action@master
-      #   with:
-      #     collection: ./backend/postman/Moneris Insights POC.postman_collection.json
+      # - name: Test command
+      #   run: |
+      #     echo ${{vars.IS_ENV_ACTIVE}}
+      #     gh variable set IS_ENV_ACTIVE --body "1" --env "Testing environment"
+      #     echo ${{vars.IS_ENV_ACTIVE}}
+      - name: Run Postman Collection
+        uses: matt-ball/newman-action@master
+        with:
+          # collection: ./backend/postman/Moneris Insights POC.postman_collection.json
+          apiKey: ${{ secrets.POSTMAN_API_KEY }}
+          collection: ${{vars.POSTMAN_COLLECTION_ID}}
