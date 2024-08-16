@@ -12,7 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Deploy to testing environment and runs Postman Collection tests
     environment: Testing environment
-    permissions: write-all
+    defaults:
+      run:
+        working-directory: backend/main-backend
     env:
       GH_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
     steps:
