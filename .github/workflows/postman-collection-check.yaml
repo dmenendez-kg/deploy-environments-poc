@@ -28,4 +28,4 @@ jobs:
         with:
           # collection: ./backend/postman/Moneris Insights POC.postman_collection.json
           apiKey: ${{ secrets.POSTMAN_API_KEY }}
-          collection: ${{vars.POSTMAN_COLLECTION_ID}}
+          collection: 1388412-1e4d3aa5-452f-4956-941b-682804c9cce3
