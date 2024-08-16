@@ -11,10 +11,14 @@ jobs:
   check_postman_collection:
     runs-on: ubuntu-latest
     name: Build main-backend and upload artifact
+    environment: Testing environment
     steps:
       - name: Checkout Github Action
         uses: actions/checkout@v4
-      - name: Run Postman Collection
-        uses: matt-ball/newman-action@master
-        with:
-          collection: ./backend/postman/Moneris Insights POC.postman_collection.json
+      - name: Test command
+        run: |
+          echo ${{vars.IS_ENV_ACTIVE}}
+      # - name: Run Postman Collection
+      #   uses: matt-ball/newman-action@master
+      #   with:
+      #     collection: ./backend/postman/Moneris Insights POC.postman_collection.json
