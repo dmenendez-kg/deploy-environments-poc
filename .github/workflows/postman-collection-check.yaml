@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     name: Build main-backend and upload artifact
     environment: Testing environment
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - name: Checkout Github Action
         uses: actions/checkout@v4
