@@ -7,6 +7,10 @@ on:
     paths:
       - "backend/main-backend/**"
   workflow_dispatch:
+    inputs:
+      flag:
+        type: boolean
+        description: this is a flag
 
 jobs:
   check_postman_collection:
