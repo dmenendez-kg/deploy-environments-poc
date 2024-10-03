@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - "backend/main-backend/**"
+  workflow_dispatch:
 
 jobs:
   check_postman_collection:
