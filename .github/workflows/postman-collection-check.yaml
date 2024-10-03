@@ -8,8 +8,8 @@ on:
       - "backend/main-backend/**"
   workflow_dispatch:
     inputs:
-      flag:
-        type: boolean
+      name:
+        type: string
         description: this is a flag
 
 jobs:
